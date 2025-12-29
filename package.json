@@ -1,0 +1,38 @@
+{
+  "name": "vendedor-digital-inteligente",
+  "version": "1.0.0",
+  "description": "IA Conversacional com Follow-up Comportamental Inteligente para WhatsApp",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "api": "node src/api/start.js",
+    "dev": "node --watch src/index.js",
+    "api:dev": "node --watch src/api/start.js",
+    "both": "node src/start-all.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "ai",
+    "sales",
+    "follow-up",
+    "behavioral",
+    "chatbot"
+  ],
+  "author": "Saraiva",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "node-cron": "^3.0.3",
+    "pino": "^9.6.0",
+    "qrcode-terminal": "^0.12.0",
+    "uuid": "^13.0.0"
+  }
+}
