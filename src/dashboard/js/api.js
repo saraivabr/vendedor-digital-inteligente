@@ -106,7 +106,8 @@ const API = {
         delete: (id) => API.delete(`/contacts/${id}`),
         timeline: (id) => API.get(`/contacts/${id}/timeline`),
         deals: (id) => API.get(`/contacts/${id}/deals`),
-        stats: () => API.get('/contacts/stats')
+        stats: () => API.get('/contacts/stats'),
+        toggleBot: (id) => API.post(`/contacts/${id}/toggle-bot`)
     },
 
     // Deals endpoints

@@ -5,13 +5,16 @@
 
 import { Router } from 'express';
 import contacts from '../../crm/contacts.js';
+import db from '../../database/db.js';
 import { asyncHandler } from '../middleware/errors.js';
 import { validateRequired, validatePhone, validateEmail, validatePagination, sanitize } from '../middleware/validation.js';
 import { success, created, paginated, notFound, error } from '../utils/response.js';
 
 const router = Router();
 
-// GET /api/contacts - List contacts
+// ... existing routes ...
+
+
 router.get('/',
     validatePagination,
     asyncHandler(async (req, res) => {
@@ -44,6 +47,14 @@ router.get('/:id', asyncHandler(async (req, res) => {
 
     if (!contact) {
         return notFound(res, 'Contato');
+    }
+
+    // Enhance with conversation status
+    if (contact.phone) {
+        const conversation = db.getConversation(contact.phone);
+        contact.is_active = conversation ? conversation.is_active : 1;
+    } else {
+        contact.is_active = 1;
     }
 
     return success(res, contact);
@@ -159,6 +170,36 @@ router.get('/phone/:phone', asyncHandler(async (req, res) => {
     }
 
     return success(res, contact);
+}));
+
+// POST /api/contacts/:id/toggle-bot - Toggle AI status
+router.post('/:id/toggle-bot', asyncHandler(async (req, res) => {
+    const contact = contacts.getById(req.params.id);
+
+    if (!contact) {
+        return notFound(res, 'Contato');
+    }
+
+    if (!contact.phone) {
+        return error(res, 'Contato sem telefone', 'NO_PHONE', 400);
+    }
+
+    // Get conversation status
+    let conversation = db.getConversation(contact.phone);
+
+    // If no conversation, create one (active by default)
+    if (!conversation) {
+        conversation = db.createConversation(contact.phone, contact.name);
+    }
+
+    // Toggle status
+    const currentStatus = conversation.is_active !== undefined ? conversation.is_active : 1;
+    const newStatus = currentStatus ? 0 : 1;
+
+    // Update conversation
+    db.updateConversation(contact.phone, { is_active: newStatus });
+
+    return success(res, { is_active: newStatus, phone: contact.phone });
 }));
 
 export default router;

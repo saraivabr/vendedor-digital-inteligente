@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1230,6 +1231,7 @@
                 transform: translateX(400px);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -1308,6 +1310,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- ===== LOGIN SCREEN ===== -->
@@ -1326,12 +1329,12 @@
                     <p>Entre com suas credenciais para continuar</p>
                 </div>
                 <div class="form-group">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" placeholder="seu@email.com" required>
+                    <label for="login-email">E-mail</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
+                    <label for="login-password">Senha</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
                 </div>
                 <button type="submit" class="btn-primary">Entrar</button>
             </form>
@@ -1362,7 +1365,8 @@
                 </div>
             </nav>
             <div class="sidebar-user">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect fill='%233B82F6' width='48' height='48'/%3E%3Ctext x='50%25' y='50%25' font-size='20' fill='white' text-anchor='middle' dy='.3em' font-family='Arial'%3EJS%3C/text%3E%3C/svg%3E" alt="User">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect fill='%233B82F6' width='48' height='48'/%3E%3Ctext x='50%25' y='50%25' font-size='20' fill='white' text-anchor='middle' dy='.3em' font-family='Arial'%3EJS%3C/text%3E%3C/svg%3E"
+                    alt="User">
             </div>
         </div>
 
@@ -1433,7 +1437,7 @@
 
                     <!-- Chat View -->
                     <div class="chat-view">
-                        <div class="chat-header">
+                        <div class="chat-header" id="chat-header">
                             <div class="chat-header-left">
                                 <div class="conversation-avatar">MC</div>
                                 <div class="chat-header-info">
@@ -1458,7 +1462,8 @@
                             <div class="message incoming">
                                 <div class="message-avatar">MC</div>
                                 <div class="message-content">
-                                    <div class="message-bubble">Ola! Gostaria de saber mais sobre os seus servicos.</div>
+                                    <div class="message-bubble">Ola! Gostaria de saber mais sobre os seus servicos.
+                                    </div>
                                     <div class="message-time">10:30</div>
                                 </div>
                             </div>
@@ -1466,7 +1471,8 @@
                             <div class="message outgoing">
                                 <div class="message-avatar">VD</div>
                                 <div class="message-content">
-                                    <div class="message-bubble">Ola Maria! Fico feliz com seu interesse. Oferecemos solucoes completas de automacao de vendas com IA.</div>
+                                    <div class="message-bubble">Ola Maria! Fico feliz com seu interesse. Oferecemos
+                                        solucoes completas de automacao de vendas com IA.</div>
                                     <div class="message-time">10:31</div>
                                 </div>
                             </div>
@@ -1482,7 +1488,9 @@
                             <div class="message outgoing">
                                 <div class="message-avatar">VD</div>
                                 <div class="message-content">
-                                    <div class="message-bubble">Temos tres planos: Basico (R$ 497/mes), Profissional (R$ 997/mes) e Empresarial (R$ 1.997/mes). Cada um com recursos especificos para o seu negocio.</div>
+                                    <div class="message-bubble">Temos tres planos: Basico (R$ 497/mes), Profissional (R$
+                                        997/mes) e Empresarial (R$ 1.997/mes). Cada um com recursos especificos para o
+                                        seu negocio.</div>
                                     <div class="message-time">10:33</div>
                                 </div>
                             </div>
@@ -1557,7 +1565,8 @@
 
                             <div class="contact-section">
                                 <h4>Notas</h4>
-                                <textarea class="notes-area" placeholder="Adicionar notas sobre o contato...">Cliente muito interessado nos recursos de automacao. Mencionou que tem uma equipe de 15 pessoas.</textarea>
+                                <textarea class="notes-area"
+                                    placeholder="Adicionar notas sobre o contato...">Cliente muito interessado nos recursos de automacao. Mencionou que tem uma equipe de 15 pessoas.</textarea>
                             </div>
                         </div>
                     </div>
@@ -1812,7 +1821,8 @@
                             <span class="priority-badge priority-high">Alta</span>
                         </div>
                         <div class="task-description">
-                            Preparar e enviar proposta detalhada do Plano Profissional incluindo recursos de automacao e integracao.
+                            Preparar e enviar proposta detalhada do Plano Profissional incluindo recursos de automacao e
+                            integracao.
                         </div>
                         <div class="task-meta">
                             <div class="task-meta-item">
@@ -1969,7 +1979,8 @@
                     </div>
                     <div class="form-group">
                         <label>Estagio</label>
-                        <select style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px;">
+                        <select
+                            style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px;">
                             <option>Qualificacao</option>
                             <option>Proposta</option>
                             <option>Negociacao</option>
@@ -2002,15 +2013,19 @@
                     </div>
                     <div class="form-group">
                         <label>Descricao</label>
-                        <textarea rows="3" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px; font-family: inherit;" placeholder="Descreva a tarefa..."></textarea>
+                        <textarea rows="3"
+                            style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px; font-family: inherit;"
+                            placeholder="Descreva a tarefa..."></textarea>
                     </div>
                     <div class="form-group">
                         <label>Data e Hora</label>
-                        <input type="datetime-local" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px;">
+                        <input type="datetime-local"
+                            style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px;">
                     </div>
                     <div class="form-group">
                         <label>Prioridade</label>
-                        <select style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px;">
+                        <select
+                            style="width: 100%; padding: 0.875rem 1rem; border: 2px solid var(--gray-200); border-radius: 8px;">
                             <option>Baixa</option>
                             <option>Media</option>
                             <option>Alta</option>
@@ -2035,7 +2050,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="contact-form">
                     <div class="form-group">
                         <label>Nome</label>
                         <input type="text" placeholder="Nome completo">
@@ -2060,7 +2075,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('new-contact')">Cancelar</button>
-                <button class="btn btn-primary">Criar Contato</button>
+                <button class="btn btn-primary" id="create-contact-btn">Criar Contato</button>
             </div>
         </div>
     </div>
@@ -2068,215 +2083,9 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-
-        // Login form handler
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app').classList.add('active');
-            showToast('Bem-vindo de volta!', 'success');
-        });
-
-        // Navigation handler
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const view = this.getAttribute('data-view');
-
-                // Update active nav item
-                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
-
-                // Show corresponding view
-                document.querySelectorAll('.view-container').forEach(container => {
-                    container.classList.remove('active');
-                });
-                document.querySelector(`[data-view-content="${view}"]`).classList.add('active');
-            });
-        });
-
-        // Toggle contact panel
-        document.getElementById('toggle-contact-panel')?.addEventListener('click', function() {
-            document.querySelector('.contact-panel').classList.toggle('collapsed');
-        });
-
-        // Modal functions
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // Close modal when clicking outside
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-
-        // Toast notification
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-
-            const icon = type === 'success' ? 'check-circle' :
-                        type === 'error' ? 'x-circle' :
-                        type === 'warning' ? 'alert-triangle' : 'info';
-
-            toast.innerHTML = `
-                <i data-lucide="${icon}"></i>
-                <div class="toast-message">${message}</div>
-            `;
-
-            container.appendChild(toast);
-            lucide.createIcons();
-
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
-
-        // Auto-resize textarea
-        document.querySelectorAll('textarea').forEach(textarea => {
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = this.scrollHeight + 'px';
-            });
-        });
-
-        // Initialize Charts
-        function initCharts() {
-            const chartConfig = {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            };
-
-            // Conversations Chart
-            const conversationsCtx = document.getElementById('conversationsChart');
-            if (conversationsCtx) {
-                new Chart(conversationsCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'],
-                        datasets: [{
-                            label: 'Conversas',
-                            data: [12, 19, 15, 25, 22, 18, 20],
-                            borderColor: '#3B82F6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: chartConfig
-                });
-            }
-
-            // Pipeline Chart
-            const pipelineCtx = document.getElementById('pipelineChart');
-            if (pipelineCtx) {
-                new Chart(pipelineCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Qualificacao', 'Proposta', 'Negociacao', 'Ganho'],
-                        datasets: [{
-                            data: [4, 3, 2, 8],
-                            backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']
-                        }]
-                    },
-                    options: {
-                        ...chartConfig,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'bottom'
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Revenue Chart
-            const revenueCtx = document.getElementById('revenueChart');
-            if (revenueCtx) {
-                new Chart(revenueCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                        datasets: [{
-                            label: 'Receita',
-                            data: [32000, 38000, 35000, 42000, 40000, 45000],
-                            backgroundColor: '#10B981'
-                        }]
-                    },
-                    options: chartConfig
-                });
-            }
-
-            // Conversion Chart
-            const conversionCtx = document.getElementById('conversionChart');
-            if (conversionCtx) {
-                new Chart(conversionCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                        datasets: [{
-                            label: 'Taxa de Conversao (%)',
-                            data: [28, 30, 32, 31, 33, 34],
-                            borderColor: '#F59E0B',
-                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: chartConfig
-                });
-            }
-        }
-
-        // Initialize charts when reports view is shown
-        document.querySelector('[data-view="reports"]')?.addEventListener('click', function() {
-            setTimeout(initCharts, 100);
-        });
-
-        // Drag and drop for pipeline cards
-        let draggedCard = null;
-
-        document.querySelectorAll('.pipeline-card').forEach(card => {
-            card.addEventListener('dragstart', function(e) {
-                draggedCard = this;
-                this.style.opacity = '0.5';
-            });
-
-            card.addEventListener('dragend', function(e) {
-                this.style.opacity = '1';
-            });
-        });
-
-        document.querySelectorAll('.pipeline-cards').forEach(column => {
-            column.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
-
-            column.addEventListener('drop', function(e) {
-                e.preventDefault();
-                if (draggedCard) {
-                    this.appendChild(draggedCard);
-                    showToast('Negociacao movida com sucesso!', 'success');
-                }
-            });
-        });
-    </script>
+    <!-- Core Logic -->
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
 </body>
+
 </html>

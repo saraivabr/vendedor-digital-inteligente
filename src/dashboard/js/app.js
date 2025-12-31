@@ -10,6 +10,39 @@ const App = {
     conversations: [],
     currentConversationId: null,
     messagesPolling: null,
+    charts: {},
+
+    // Toggle bot status
+    async toggleBot(contactId) {
+        if (!contactId) return;
+
+        const btn = document.getElementById('toggle-bot-btn');
+        if (btn) btn.disabled = true;
+
+        try {
+            const response = await API.contacts.toggleBot(contactId);
+
+            // Update local state
+            if (this.selectedContact && this.selectedContact.id === contactId) {
+                // Ensure is_active is updated correctly (handling 0/1 vs boolean if API varies, but API ensures 0/1)
+                this.selectedContact.is_active = response.data.is_active;
+
+                // Re-render header to show new state
+                this.renderChatHeader(this.selectedContact);
+
+                // Also update the icon immediately (redundant if renderChatHeader works, but safe)
+                // Actually renderChatHeader handles it.
+            }
+
+            const isPaused = response.data.is_active === 0;
+            this.toast(isPaused ? 'IA Pausada' : 'IA Retomada', 'success');
+
+        } catch (error) {
+            console.error('Error toggling bot:', error);
+            this.toast('Erro ao alterar status da IA', 'error');
+            if (btn) btn.disabled = false;
+        }
+    },
 
     // Initialize application
     async init() {
@@ -34,6 +67,13 @@ const App = {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        this.setupPipelineDragAndDrop();
+        this.initCharts();
     },
 
     // Setup event listeners
@@ -65,6 +105,15 @@ const App = {
             newContactBtn.addEventListener('click', () => {
                 if (typeof Contacts !== 'undefined') {
                     Contacts.showModal();
+                }
+            });
+        }
+
+        const createContactBtn = document.getElementById('create-contact-btn');
+        if (createContactBtn) {
+            createContactBtn.addEventListener('click', () => {
+                if (typeof Contacts !== 'undefined') {
+                    Contacts.create();
                 }
             });
         }
@@ -288,7 +337,7 @@ const App = {
             if (userRole) {
                 userRole.textContent =
                     this.user.role === 'admin' ? 'Administrador' :
-                    this.user.role === 'manager' ? 'Gerente' : 'Agente';
+                        this.user.role === 'manager' ? 'Gerente' : 'Agente';
             }
 
             if (userAvatar) {
@@ -521,9 +570,14 @@ const App = {
                     <div class="chat-contact-status">${contact.email || contact.phone || ''}</div>
                 </div>
             </div>
-            <button id="toggle-contact-details" class="btn-icon" title="Ver detalhes">
-                <i data-lucide="info"></i>
-            </button>
+            <div class="chat-header-actions">
+                <button id="toggle-bot-btn" class="btn-icon" title="${contact.is_active === 0 ? 'Retomar IA' : 'Pausar IA'}" onclick="App.toggleBot('${contact.id}')" style="color: ${contact.is_active === 0 ? 'var(--danger)' : 'var(--text-secondary)'}">
+                    <i data-lucide="${contact.is_active === 0 ? 'play-circle' : 'pause-circle'}"></i>
+                </button>
+                <button id="toggle-contact-details" class="btn-icon" title="Ver detalhes">
+                    <i data-lucide="info"></i>
+                </button>
+            </div>
         `;
 
         // Re-initialize Lucide icons
@@ -554,9 +608,21 @@ const App = {
         }
 
         container.innerHTML = messages.map(msg => {
-            const isOutgoing = msg.type === 'message_sent' || msg.direction === 'outgoing';
+            const isOutgoing = msg.type === 'message_sent' || msg.direction === 'outgoing' || msg.role === 'assistant';
+
+            // Extract thought (check if it exists)
+            const thoughtHtml = (isOutgoing && msg.thought) ? `
+                <div class="message-thought-container" onclick="this.classList.toggle('expanded')">
+                    <div class="message-thought-header">
+                        <i data-lucide="brain-circuit"></i>
+                        <span>Pensamento Oculto</span>
+                    </div>
+                    <div class="message-thought-content">${this.escapeHtml(msg.thought)}</div>
+                </div>
+            ` : '';
 
             return `
+                ${thoughtHtml}
                 <div class="message ${isOutgoing ? 'outgoing' : 'incoming'}">
                     <div class="message-content">
                         ${this.escapeHtml(msg.content || msg.description || msg.type)}
@@ -567,6 +633,11 @@ const App = {
                 </div>
             `;
         }).join('');
+
+        // Re-initialize Lucide icons including the new brain icon
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
 
         // Auto-scroll to bottom
         container.scrollTop = container.scrollHeight;
@@ -1059,7 +1130,241 @@ const App = {
         };
 
         return text.toString().replace(/[&<>"']/g, m => map[m]);
+    },
+
+    // Initialize Charts
+    initCharts() {
+        const chartConfig = {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        };
+
+        // Conversations Chart
+        const conversationsCtx = document.getElementById('conversationsChart');
+        if (conversationsCtx) {
+            if (this.charts.conversations) this.charts.conversations.destroy();
+            this.charts.conversations = new Chart(conversationsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'],
+                    datasets: [{
+                        label: 'Conversas',
+                        data: [12, 19, 15, 25, 22, 18, 20],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: chartConfig
+            });
+        }
+
+        // Pipeline Chart
+        const pipelineCtx = document.getElementById('pipelineChart');
+        if (pipelineCtx) {
+            if (this.charts.pipeline) this.charts.pipeline.destroy();
+            this.charts.pipeline = new Chart(pipelineCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Qualificacao', 'Proposta', 'Negociacao', 'Ganho'],
+                    datasets: [{
+                        data: [4, 3, 2, 8],
+                        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']
+                    }]
+                },
+                options: {
+                    ...chartConfig,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            if (this.charts.revenue) this.charts.revenue.destroy();
+            this.charts.revenue = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Receita',
+                        data: [32000, 38000, 35000, 42000, 40000, 45000],
+                        backgroundColor: '#10B981'
+                    }]
+                },
+                options: chartConfig
+            });
+        }
+
+        // Conversion Chart
+        const conversionCtx = document.getElementById('conversionChart');
+        if (conversionCtx) {
+            if (this.charts.conversion) this.charts.conversion.destroy();
+            this.charts.conversion = new Chart(conversionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Taxa de Conversao (%)',
+                        data: [28, 30, 32, 31, 33, 34],
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: chartConfig
+            });
+        }
+    },
+
+    setupPipelineDragAndDrop() {
+        let draggedCard = null;
+
+        document.querySelectorAll('.pipeline-card').forEach(card => {
+            card.addEventListener('dragstart', function (e) {
+                draggedCard = this;
+                this.style.opacity = '0.5';
+            });
+
+            card.addEventListener('dragend', function (e) {
+                this.style.opacity = '1';
+                draggedCard = null;
+            });
+        });
+
+        document.querySelectorAll('.pipeline-cards').forEach(column => {
+            column.addEventListener('dragover', function (e) {
+                e.preventDefault();
+            });
+
+            column.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedCard) {
+                    column.appendChild(draggedCard);
+                    this.toast('Negociacao movida com sucesso!', 'success');
+                }
+            });
+        });
     }
+};
+
+const Contacts = {
+    showModal() {
+        // Implement modal show logic (remove hidden class)
+        const modal = document.getElementById('new-contact');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    },
+
+    // Create new contact
+    async create() {
+        const form = document.getElementById('contact-form');
+        if (!form) return;
+
+        // Get inputs by placeholder since IDs are missing or unreliable
+        const name = form.querySelector('input[placeholder="Nome completo"]')?.value;
+        const email = form.querySelector('input[placeholder="email@exemplo.com"]')?.value;
+        const phone = form.querySelector('input[placeholder="(11) 99999-9999"]')?.value;
+        const company = form.querySelector('input[placeholder="Nome da empresa"]')?.value;
+        const role = form.querySelector('input[placeholder="Ex: Gerente de Vendas"]')?.value;
+
+        if (!name || !phone) {
+            App.toast('Nome e Telefone são obrigatórios', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('create-contact-btn');
+        if (btn) btn.disabled = true;
+
+        try {
+            await API.contacts.create({
+                name,
+                email,
+                phone,
+                company,
+                role
+            });
+
+            App.toast('Contato criado com sucesso!', 'success');
+            App.closeModals();
+
+            // Reload contacts or dashboard
+            if (App.currentView === 'contacts') {
+                this.loadContacts();
+            } else {
+                App.loadDashboardData();
+            }
+
+        } catch (error) {
+            console.error('Error creating contact:', error);
+            App.toast('Erro ao criar contato: ' + error.message, 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    },
+
+    async loadContacts() {
+        try {
+            const response = await API.contacts.list({ limit: 50 });
+            const contacts = response.data.contacts || response.data || [];
+
+            const tbody = document.querySelector('table tbody');
+            if (tbody) {
+                tbody.innerHTML = contacts.map(c => `
+                    <tr>
+                        <td>
+                            <div class="table-contact">
+                                <div class="table-avatar">${App.getInitials(c.name)}</div>
+                                <div class="table-contact-info">
+                                    <div class="table-contact-name">${App.escapeHtml(c.name)}</div>
+                                    <div class="table-contact-email">${App.escapeHtml(c.email || '')}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${App.escapeHtml(c.company || '-')}</td>
+                        <td>${App.formatPhone(c.phone)}</td>
+                        <td><span class="status-badge ${c.is_active === 0 ? 'status-inactive' : 'status-active'}">${c.is_active === 0 ? 'Pausado' : 'Ativo'}</span></td>
+                        <td>${App.timeAgo(c.updated_at || c.created_at)}</td>
+                    </tr>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading contacts table:', error);
+            App.toast('Erro ao carregar contatos', 'error');
+        }
+    }
+};
+
+const Pipeline = {
+    showDealModal() {
+        const modal = document.getElementById('new-deal');
+        if (modal) modal.classList.add('active');
+    },
+    handleDealSubmit(e) { e.preventDefault(); App.toast('Funcionalidade em desenvolvimento', 'info'); App.closeModals(); },
+    loadKanban() { console.log('Loading Kanban...'); }
+};
+
+const Tasks = {
+    showModal() {
+        const modal = document.getElementById('new-task');
+        if (modal) modal.classList.add('active');
+    },
+    handleSubmit(e) { e.preventDefault(); App.toast('Funcionalidade em desenvolvimento', 'info'); App.closeModals(); },
+    loadTasks(filter) { console.log('Loading tasks:', filter); }
 };
 
 // Initialize on DOM ready

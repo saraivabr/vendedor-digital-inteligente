@@ -159,7 +159,7 @@ class BehaviorEngine {
         // Indexa conversa para RAG (async, não bloqueia)
         const allHistory = db.getRecentHistory(conversation.id, 20);
         if (allHistory.length >= 5) {
-            rag.indexConversation(conversation.id, phone, allHistory).catch(() => {});
+            rag.indexConversation(conversation.id, phone, allHistory).catch(() => { });
         }
 
         return {
@@ -190,66 +190,57 @@ class BehaviorEngine {
 
     /**
      * Determina próximo estágio baseado no contexto
-     *
-     * REGRA DE OURO: Não avançar rápido demais!
-     * O cliente precisa sentir que estamos CONVERSANDO, não VENDENDO.
      */
     determineNextStage(conversation, analysis) {
         const current = conversation.stage || 'GREETING';
-        const totalUserMsgs = conversation.total_messages_received || 0;
 
-        // NUNCA pular direto pro CLOSING sem passar pelos estágios
-        // Isso evita "já oferecendo de prima"
-
-        // Se detectou objeção E já passou pela SOLUTION
-        if (analysis.objection && ['SOLUTION', 'DEMONSTRATION', 'CLOSING'].includes(current)) {
+        // Se detectou objeção, vai para handling
+        if (analysis.objection) {
             return 'OBJECTION_HANDLING';
         }
 
-        // Progressão natural - MAIS RIGOROSA
+        // Se detectou sinal de compra forte
+        if (analysis.buyingSignal && analysis.intent === 'confirmation') {
+            return 'CLOSING';
+        }
+
+        // Progressão natural baseada em score e contexto
         const score = conversation.qualification_score || 0;
 
         switch (current) {
             case 'GREETING':
-                // Precisa de NOME + pelo menos 3 mensagens
-                if (conversation.name && totalUserMsgs >= 3) {
+                if (conversation.name && conversation.total_messages_received >= 2) {
                     return 'DISCOVERY';
                 }
                 break;
 
             case 'DISCOVERY':
-                // Precisa de DOR IDENTIFICADA + pelo menos 5 mensagens totais
-                if (conversation.extracted_pain && totalUserMsgs >= 5 && score >= 3) {
+                if (conversation.extracted_pain || score >= 3) {
                     return 'PAIN_AMPLIFICATION';
                 }
                 break;
 
             case 'PAIN_AMPLIFICATION':
-                // Precisa de score alto + lead demonstrou interesse real
-                if (score >= 6 && totalUserMsgs >= 7 && analysis.intent === 'interest') {
+                if (score >= 5 || analysis.intent === 'interest') {
                     return 'SOLUTION';
                 }
                 break;
 
             case 'SOLUTION':
-                // Sinal de compra claro + conversa madura
-                if (analysis.buyingSignal && score >= 7 && totalUserMsgs >= 9) {
+                if (analysis.buyingSignal || score >= 7) {
                     return 'DEMONSTRATION';
                 }
                 break;
 
             case 'DEMONSTRATION':
-                if (analysis.intent === 'confirmation' && score >= 8) {
+                if (analysis.intent === 'confirmation' || score >= 8) {
                     return 'CLOSING';
                 }
                 break;
 
             case 'OBJECTION_HANDLING':
-                // Só avança se resolveu a objeção
-                if (analysis.sentiment === 'positive' && !analysis.objection) {
-                    // Volta pro estágio anterior apropriado
-                    if (score >= 7) return 'CLOSING';
-                    return 'SOLUTION';
+                if (analysis.sentiment === 'positive' || !analysis.objection) {
+                    return 'CLOSING';
                 }
                 break;
 
@@ -351,75 +342,56 @@ ${diagnosticQuestionsContext}
 ${valueAnchorsContext}
 ${ragContext}
 
-## REGRAS ABSOLUTAS DE HUMANIZAÇÃO
-**VOCÊ É O SARAIVA, UM HUMANO REAL DIGITANDO NO WHATSAPP**
+## REGRAS DE HUMANIZAÇÃO
 
-### PERSONALIDADE FIXA:
-- Você é direto, confiante, experiente
-- Não é vendedor desesperado, é consultor que sabe o valor do que oferece
-- Tom casual brasileiro, como se tivesse conversando com um conhecido
-- Nunca ansioso, nunca forçado, sempre natural
+### IDENTIDADE:
+- Você é um vendedor digital humano (NÃO mencione seu nome)
+- Direto, confiante, experiente
+- Tom casual brasileiro, conversa natural
+- NUNCA diga que é IA/bot/robô/assistente
 
-### VOCABULÁRIO BRASILEIRO OBRIGATÓRIO:
-**Abreviações (use 70% do tempo):**
-vc, pq, tbm, tá, tô, mt, oq, qnd, cmg, blz, vlw, flw, hj, agr, aki, obg, vdd, prob
+### REGRA CRÍTICA - ANTI-REPETIÇÃO:
+- **NUNCA** comece com "opa [nome] firmeza total" - isso é repetitivo e robótico
+- Cumprimente apenas na PRIMEIRA mensagem da conversa
+- Depois da primeira msg, vá DIRETO ao ponto
+- NUNCA use "então..." como abertura repetida
+- Varie suas respostas - nunca siga o mesmo padrão
 
-**Expressões naturais (intercale):**
-- Confirmações: "beleza", "show", "massa", "top", "firmeza", "fechou"
-- Interjeições: "pô", "caraca", "eita", "nossa", "vish"
-- Fillers: "tipo", "sabe", "então", "assim", "né", "mano", "cara"
-- Risadas: "kk", "kkk", "rsrs", "haha" (use com moderação)
+### ABREVIAÇÕES (use naturalmente):
+vc, pq, tbm, tá, tô, mt, oq, qnd, cmg, blz, vlw, hj, agr
 
-**Aberturas naturais (varie):**
-- "e ai", "opa", "fala", "oi", "oii"
-- NUNCA: "Olá!", "Bom dia!", "Prezado", "Boa tarde!"
+### EXPRESSÕES (use com MODERAÇÃO, não em toda msg):
+- "show", "massa", "top" - apenas quando fizer sentido
+- "kk", "rsrs" - raramente, quando algo for engraçado
+- NÃO use "firmeza", "fechou" em toda resposta
 
-### FORMATO DE RESPOSTA (CRÍTICO):
-SEMPRE responda em blocos curtos separados por linha em branco dupla.
-Cada bloco = no máximo 2 linhas.
+### FORMATO DE RESPOSTA:
+- Responda em 1-2 mensagens curtas (NÃO fragmente demais)
+- Máximo 3 linhas por resposta
+- Seja CONCISO - menos é mais
 
-**ERRADO (textão de bot):**
-"Oi, tudo bem? Então, eu trabalho com vendas pelo WhatsApp e queria entender melhor sobre o seu negócio para ver se faz sentido a gente conversar sobre uma solução."
+**ERRADO (fragmentação excessiva):**
+"opa saraiva
+firmeza total
+então...
+vc vende ia?"
 
-**CERTO (humano real):**
-"oii
+**CERTO (natural):**
+"vc vende ia? q tipo?"
 
-td bem?
-
-trabalho com vendas pelo whats
-
-queria entender oq vc faz"
-
-### REGRAS DE PONTUAÇÃO:
-- SEM ponto final em frases curtas
-- Vírgulas mínimas
-- "..." pra pausas/pensamentos
-- "?" só quando pergunta real
-- "!" raramente (demonstra emoção forte)
-
-### ESPELHAMENTO EMOCIONAL:
-- Se cliente está **empolgado** → seja mais energético, use "massa!", "show!"
-- Se cliente está **frustrado** → seja mais calmo, empático: "entendo", "faz sentido"
-- Se cliente está **apressado** → seja direto, sem enrolação
-- Se cliente usa **gírias** → use mais gírias também
-- Se cliente é **formal** → reduza um pouco as abreviações
-
-### IMPERFEIÇÕES HUMANAS (use ocasionalmente):
-- Começar no meio do pensamento: "tipo, o negócio é que..."
-- Pausas com reticências: "hm... deixa eu ver"
-- Autocorreção: "*whatsapp" (raro)
-- Mudar de ideia: "na real, melhor assim:"
-- Interrupções naturais: "ah, antes disso"
+### FLUXO DE CONVERSA:
+1. PRIMEIRA MSG: cumprimento simples + pergunta
+2. DEMAIS: vá direto ao ponto, sem cumprimentar de novo
+3. Faça UMA pergunta por vez
+4. Ouça antes de falar do produto
+5. SÓ fale de preço quando o lead perguntar ou mostrar interesse claro
 
 ### NUNCA FAZER:
-- Mensagens longas/formais
-- Parecer texto bem escrito/revisado
-- Linguagem corporativa/vendedor
-- Apresentar-se como IA/bot/robô/assistente
-- Usar "!" demais (parece fake)
-- Respostas genéricas de chatbot
-- Começar com "Claro!", "Com certeza!", "Entendi!"
-- Terminar com "Qualquer dúvida estou à disposição"
+- Repetir o mesmo padrão de abertura
+- Fragmentar em 5+ mensagens
+- Pular direto pro preço sem qualificar
+- Usar expressões em TODA resposta
+- Parecer template/roteiro
 
 ## TÉCNICAS DE VENDA AVANÇADAS
 
@@ -587,7 +559,7 @@ queria entender oq vc faz"
 
     /**
      * Fragmenta mensagem em múltiplas partes (como humano digitando)
-     * MÁXIMO 2-3 fragmentos para não parecer spam
+     * MÁXIMO 2 fragmentos para não parecer spam
      */
     fragmentMessage(message) {
         // Primeiro, tenta separar por linhas em branco duplas (padrão do prompt)
@@ -598,11 +570,11 @@ queria entender oq vc faz"
             fragments = message.split('\n').map(f => f.trim()).filter(f => f);
         }
 
-        // AGRUPA fragmentos para ter no MÁXIMO 3 mensagens
-        // Humano real manda 1-3 msgs, não 7
-        if (fragments.length > 3) {
+        // AGRUPA fragmentos para ter no MÁXIMO 2 mensagens
+        // Humano real NÃO manda 5 msgs seguidas
+        if (fragments.length > 2) {
             const grouped = [];
-            const chunkSize = Math.ceil(fragments.length / 3);
+            const chunkSize = Math.ceil(fragments.length / 2);
 
             for (let i = 0; i < fragments.length; i += chunkSize) {
                 const chunk = fragments.slice(i, i + chunkSize);
@@ -611,12 +583,12 @@ queria entender oq vc faz"
             fragments = grouped;
         }
 
-        // Agrupa fragmentos muito curtos (< 20 chars) com o próximo
+        // Agrupa fragmentos curtos (< 40 chars) com o próximo
         const finalFragments = [];
         let current = '';
 
         for (const frag of fragments) {
-            if (current && current.length < 20) {
+            if (current && current.length < 40) {
                 // Junta com o fragmento atual
                 current = current + '\n' + frag;
             } else if (current) {
@@ -629,10 +601,10 @@ queria entender oq vc faz"
 
         if (current) finalFragments.push(current);
 
-        // MÁXIMO 3 fragmentos - se tiver mais, agrupa os últimos
-        if (finalFragments.length > 3) {
-            const last = finalFragments.slice(2).join('\n');
-            return [...finalFragments.slice(0, 2), last];
+        // MÁXIMO 2 fragmentos - se tiver mais, agrupa
+        if (finalFragments.length > 2) {
+            const last = finalFragments.slice(1).join('\n');
+            return [finalFragments[0], last];
         }
 
         return finalFragments.length > 0 ? finalFragments : [message];
@@ -743,32 +715,33 @@ queria entender oq vc faz"
 
     /**
      * Decide se deve usar fragmentação de mensagem
-     * Humanos mandam várias mensagens curtas, não textões
+     * Humanos mandam várias mensagens curtas, mas não fragmentam demais
      * @param {string} message - Mensagem a ser enviada
      * @param {Object} conversation - Conversa atual
      * @returns {boolean}
      */
     shouldFragmentMessage(message, conversation) {
-        // PRIORIDADE 1: Se tem quebras de linha, SEMPRE fragmenta
-        // Isso é o mais importante - humanos mandam msgs separadas
-        if (message.includes('\n\n') || (message.includes('\n') && message.split('\n').filter(l => l.trim()).length > 1)) {
-            console.log(`   📝 Fragmentação: SIM (tem ${message.split('\n').filter(l => l.trim()).length} linhas)`);
-            return true;
-        }
-
         // Fechamento com valor específico deve ser direto
         if (conversation.stage === 'CLOSING' && message.includes('R$')) {
+            console.log(`   📝 Fragmentação: NÃO (closing com preço)`);
             return false;
         }
 
-        // Mensagem longa sem quebras? Também fragmenta
+        // Fragmenta se tiver quebras de linha (natural para humanos)
+        const lines = message.split('\n').filter(l => l.trim());
+        if (lines.length >= 2) {
+            console.log(`   📝 Fragmentação: SIM (${lines.length} linhas)`);
+            return true;
+        }
+
+        // Mensagem longa sem quebras? Fragmenta se > 80 chars
         if (message.length > 80) {
             console.log(`   📝 Fragmentação: SIM (mensagem longa: ${message.length} chars)`);
             return true;
         }
 
-        // Mensagem curta e sem quebras = não fragmenta
-        console.log(`   📝 Fragmentação: NÃO (mensagem curta sem quebras)`);
+        // Mensagem curta sem quebras = não fragmenta
+        console.log(`   📝 Fragmentação: NÃO (mensagem curta/simples)`);
         return false;
     }
 }

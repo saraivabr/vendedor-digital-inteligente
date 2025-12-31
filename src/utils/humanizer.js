@@ -93,6 +93,13 @@ class Humanizer {
             'então',
             'bom'
         ];
+        // Mapa de teclado QWERTY para typos realistas (teclas adjacentes)
+        this.keyboardMap = {
+            'q': 'wa', 'w': 'qse', 'e': 'wrd', 'r': 'eft', 't': 'rgy', 'y': 'thu', 'u': 'yji', 'i': 'uko', 'o': 'ilp', 'p': 'oç',
+            'a': 'qsz', 's': 'awxz', 'd': 'serfc', 'f': 'drtgv', 'g': 'ftyhb', 'h': 'gynj', 'j': 'hukm', 'k': 'jil', 'l': 'koç',
+            'z': 'asx', 'x': 'zdc', 'c': 'xfv', 'v': 'cgb', 'b': 'vhn', 'n': 'bmj', 'm': 'nk',
+            'ç': 'lp'
+        };
     }
 
     /**
@@ -131,47 +138,46 @@ class Humanizer {
     }
 
     /**
-     * Adiciona typo intencional a uma palavra (5% de chance por palavra)
+     * Adiciona typo intencional a uma palavra (typos realistas de teclado)
      * @param {string} text - Texto para adicionar typos
-     * @param {number} typoChance - Chance de typo (0-100), default 3
+     * @param {number} chance - Chance de typo (0-100), default 3
      */
-    addTypos(text, typoChance = 3) {
-        if (!this.chance(typoChance * 3)) return text; // 3x a chance para decidir se adiciona algum typo
+    addTypos(text, chance = 3) {
+        if (!this.chance(chance * 2)) return text; // Chance global de ter algum typo na frase
 
-        const words = text.split(' ');
-        let typoAdded = false;
+        const chars = text.split('');
+        const index = Math.floor(Math.random() * chars.length);
+        const char = chars[index].toLowerCase();
+        const originalChar = chars[index];
 
-        const result = words.map(word => {
-            // Só adiciona 1 typo por mensagem e com chance baixa
-            if (typoAdded || !this.chance(typoChance)) return word;
+        // Se for espaço ou pontuação, ignora ou duplica
+        if (!/[a-zçáàãâéêíóôõú]/.test(char)) {
+            if (this.chance(10)) chars.splice(index, 0, originalChar); // Duplicação acidental
+            return chars.join('');
+        }
 
-            const lowerWord = word.toLowerCase().replace(/[.,!?]/g, '');
+        const typoType = Math.random();
 
-            // Verifica se temos typo mapeado para essa palavra
-            if (this.commonTypos[lowerWord]) {
-                const typos = this.commonTypos[lowerWord];
-                const typo = this.random(typos);
-                if (typo !== lowerWord) {
-                    typoAdded = true;
-                    // Preserva pontuação
-                    const punct = word.match(/[.,!?]+$/)?.[0] || '';
-                    return typo + punct;
-                }
-            }
+        // 1. Vizinho de teclado (70%)
+        if (typoType < 0.7 && this.keyboardMap[char]) {
+            const neighbors = this.keyboardMap[char];
+            const replacement = neighbors[Math.floor(Math.random() * neighbors.length)];
+            chars[index] = (originalChar === char.toUpperCase()) ? replacement.toUpperCase() : replacement;
+        }
+        // 2. Omissão (15%)
+        else if (typoType < 0.85) {
+            chars.splice(index, 1);
+        }
+        // 3. Duplicação (10%)
+        else if (typoType < 0.95) {
+            chars.splice(index, 0, originalChar);
+        }
+        // 4. Troca de ordem (5% - transposição)
+        else if (index < chars.length - 1) {
+            [chars[index], chars[index + 1]] = [chars[index + 1], chars[index]];
+        }
 
-            // Typo genérico: trocar letras adjacentes (5% das palavras longas)
-            if (word.length > 4 && this.chance(2)) {
-                const pos = Math.floor(Math.random() * (word.length - 2)) + 1;
-                const chars = word.split('');
-                [chars[pos], chars[pos + 1]] = [chars[pos + 1], chars[pos]];
-                typoAdded = true;
-                return chars.join('');
-            }
-
-            return word;
-        });
-
-        return result.join(' ');
+        return chars.join('');
     }
 
     /**

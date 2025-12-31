@@ -2224,3 +2224,66 @@ textarea.form-control {
     box-shadow: none !important;
   }
 }
+
+/* Thought Bubble (Chain of Thought) */
+.message-thought-container {
+  margin-bottom: var(--spacing-xs);
+  max-width: 90%;
+  align-self: flex-end; /* Show on right side for assistant */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Align to right */
+  margin-left: auto; /* Push to right */
+}
+
+.message-thought-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--warning); 
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-base);
+}
+
+.message-thought-header:hover {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.message-thought-header svg {
+  width: 14px;
+  height: 14px;
+}
+
+.message-thought-content {
+  background: #FFFBEB;
+  border: 1px solid #FEF3C7;
+  border-left: 3px solid var(--warning);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  box-shadow: var(--shadow-sm);
+  display: none;
+  margin-top: 4px;
+  width: 100%;
+  text-align: left;
+}
+
+.message-thought-container.expanded .message-thought-content {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+.message-thought-container.expanded .message-thought-header {
+  background: rgba(245, 158, 11, 0.2);
+}
